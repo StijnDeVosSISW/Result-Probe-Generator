@@ -24,6 +24,7 @@ namespace ResultProbeGenerator
         // Custom members
         private static NXOpen.CAE.SimPart mySIM = null;
         private static List<NXOpen.CAE.SimSolution> mySolutions = null;
+        private static List<NXOpen.CAE.SimSolution> mySelectedSolutions = new List<NXOpen.CAE.SimSolution>();
 
         //------------------------------------------------------------------------------
         //Constructor for NX Styler class
@@ -253,7 +254,7 @@ namespace ResultProbeGenerator
             {
                 if (block == LB_Solutions)
                 {
-                    //---------Enter your code here-----------
+                   // ...
                 }
                 else if (block == toggle_SelectAll)
                 {
@@ -270,7 +271,19 @@ namespace ResultProbeGenerator
                 }
                 else if (block == BTN_Generate)
                 {
-                    //---------Enter your code here-----------
+                    // GET SELECTED SOLUTIONS
+                    mySelectedSolutions.Clear();
+
+                    foreach (int index in LB_Solutions.GetSelectedItems())
+                    {
+                        mySelectedSolutions.Add(mySolutions[index]);
+                    }
+
+                    // GENERATE CPP RESULT PROBES
+                    ProbeGenerator myProbeGenerator = new ProbeGenerator();
+                    myProbeGenerator.GenerateCPPResultProbes(mySelectedSolutions);
+
+                    Logger.Show();
                 }
             }
             catch (Exception ex)
