@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NXOpen;
 using NXOpen.BlockStyler;
+using ResultProbeGenerator.SERVICES;
 
 namespace ResultProbeGenerator
 {
@@ -17,7 +18,12 @@ namespace ResultProbeGenerator
         private NXOpen.BlockStyler.BlockDialog theDialog;
         private NXOpen.BlockStyler.Group group0;// Block type: Group
         private NXOpen.BlockStyler.ListBox LB_Solutions;// Block type: List Box
-        private NXOpen.BlockStyler.Button BTN_SelectAll;// Block type: Button
+        private NXOpen.BlockStyler.Toggle toggle_SelectAll;// Block type: Toggle
+        private NXOpen.BlockStyler.Button BTN_Generate;// Block type: Button
+
+        // Custom members
+        private static NXOpen.CAE.SimPart mySIM = null;
+        private static List<NXOpen.CAE.SimSolution> mySolutions = null;
 
         //------------------------------------------------------------------------------
         //Constructor for NX Styler class
@@ -134,7 +140,20 @@ namespace ResultProbeGenerator
         {
             try
             {
-                theDialog.Show();
+                //CHECK WORKING OBJECT
+                Logger.Write("--- WORKING OBJECT CHECK ---");
+
+                NXOpen.NXObject workObj = theSession.Parts.BaseWork;
+                if (workObj.GetType().ToString() != "NXOpen.CAE.SimPart")
+                {
+                    Logger.Write(workObj.GetType().ToString() + "  --> EXPECTED A SIM OBJECT TO BE THE WORKING OBJECT:  ABORT");
+                    Logger.Show();
+                }
+                else
+                {
+                    // SHOW GUI
+                    theDialog.Show();
+                }
             }
             catch (Exception ex)
             {
@@ -169,7 +188,8 @@ namespace ResultProbeGenerator
             {
                 group0 = (NXOpen.BlockStyler.Group)theDialog.TopBlock.FindBlock("group0");
                 LB_Solutions = (NXOpen.BlockStyler.ListBox)theDialog.TopBlock.FindBlock("LB_Solutions");
-                BTN_SelectAll = (NXOpen.BlockStyler.Button)theDialog.TopBlock.FindBlock("BTN_SelectAll");
+                toggle_SelectAll = (NXOpen.BlockStyler.Toggle)theDialog.TopBlock.FindBlock("toggle_SelectAll");
+                BTN_Generate = (NXOpen.BlockStyler.Button)theDialog.TopBlock.FindBlock("BTN_Generate");
                 //------------------------------------------------------------------------------
                 //Registration of ListBox specific callbacks
                 //------------------------------------------------------------------------------
@@ -195,9 +215,27 @@ namespace ResultProbeGenerator
         {
             try
             {
-                //GET WORKING OBJECT
-                NXOpen.NXObject workObj = theSession.Parts.BaseWork;
+                Logger.Write(Environment.NewLine +
+                    "--- PREPARE GUI ---");
 
+                // GET WORKING SIM
+                mySIM = (NXOpen.CAE.SimPart)theSession.Parts.BaseWork;
+
+                Logger.Write("Working SIM :  " + mySIM.Name);
+
+                // GET ALL SOLUTION OBJECTS
+                mySolutions = mySIM.Simulation.Solutions.ToArray().ToList();
+
+                Logger.Write("# Solutions =  " + mySolutions.Count.ToString());
+                foreach (NXOpen.CAE.SimSolution solution in mySolutions)
+                {
+                    Logger.Write("   " + solution.Name);
+                }
+
+                // ADD SOLUTION OBJECTS TO GUI LISTBOX
+                LB_Solutions.SetListItems(mySolutions.Select(x => x.Name).ToArray());
+
+                Logger.Write("Added solutions to GUI");
             }
             catch (Exception ex)
             {
@@ -217,7 +255,20 @@ namespace ResultProbeGenerator
                 {
                     //---------Enter your code here-----------
                 }
-                else if (block == BTN_SelectAll)
+                else if (block == toggle_SelectAll)
+                {
+                    if (toggle_SelectAll.Value)
+                    {
+                        // SELECT ALL
+                        LB_Solutions.SetSelectedItems(Enumerable.Range(0, mySolutions.Count).ToArray());
+                    }
+                    else
+                    {
+                        // DESELECT ALL
+                        LB_Solutions.SetSelectedItems(new List<int>().ToArray());
+                    }
+                }
+                else if (block == BTN_Generate)
                 {
                     //---------Enter your code here-----------
                 }
