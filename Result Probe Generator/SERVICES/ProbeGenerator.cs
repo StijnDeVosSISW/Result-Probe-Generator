@@ -21,7 +21,7 @@ namespace ResultProbeGenerator.SERVICES
         /// Generates target CPP Result Probe in each Solution, which does not have this Result Probe yet
         /// </summary>
         /// <param name="solutions"></param>
-        public void GenerateCPPResultProbes(List<NXOpen.CAE.SimSolution> solutions)
+        public void GenerateCPPResultProbes(List<NXOpen.CAE.SimSolution> solutions, NXOpen.CAE.SimPart mySIM)
         {
             Logger.Write(Environment.NewLine +
                 "--- GENERATE CPP RESULT PROBES ---");
@@ -40,7 +40,9 @@ namespace ResultProbeGenerator.SERVICES
                     continue;
                 }
 
-                // ...
+                // MAKE SOLUTION ACTIVE
+                mySIM.Simulation.ActiveSolution = solution;
+                Logger.Write("      Made active solution");
 
             }
         }

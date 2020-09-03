@@ -281,7 +281,7 @@ namespace ResultProbeGenerator
 
                     // GENERATE CPP RESULT PROBES
                     ProbeGenerator myProbeGenerator = new ProbeGenerator();
-                    myProbeGenerator.GenerateCPPResultProbes(mySelectedSolutions);
+                    myProbeGenerator.GenerateCPPResultProbes(mySelectedSolutions, mySIM);
 
                     Logger.Show();
                 }
