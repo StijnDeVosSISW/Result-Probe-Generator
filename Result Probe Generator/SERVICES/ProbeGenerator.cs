@@ -15,6 +15,12 @@ namespace ResultProbeGenerator.SERVICES
         }
 
         // METHODS
+        // -------
+
+        /// <summary>
+        /// Generates target CPP Result Probe in each Solution, which does not have this Result Probe yet
+        /// </summary>
+        /// <param name="solutions"></param>
         public void GenerateCPPResultProbes(List<NXOpen.CAE.SimSolution> solutions)
         {
             Logger.Write(Environment.NewLine +
@@ -23,6 +29,19 @@ namespace ResultProbeGenerator.SERVICES
             foreach (NXOpen.CAE.SimSolution solution in solutions)
             {
                 Logger.Write("   SOLUTION:  " + solution.Name.ToUpper());
+
+                // CHECK IF RESULT PROBE EXISTS ALREADY
+                NXOpen.CAE.ResultProbe[] existingResultProbes;
+                solution.GetAllResultProbes(out existingResultProbes);
+
+                if (existingResultProbes.Any(x => x.Name == "True Bolt Shear"))
+                {
+                    Logger.Write("      Already contain CPP Result Probe --> SKIPPED");
+                    continue;
+                }
+
+                // ...
+
             }
         }
     }
