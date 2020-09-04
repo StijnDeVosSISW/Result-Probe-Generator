@@ -18,13 +18,15 @@ namespace ResultProbeGenerator
         private NXOpen.BlockStyler.BlockDialog theDialog;
         private NXOpen.BlockStyler.Group group0;// Block type: Group
         private NXOpen.BlockStyler.ListBox LB_Solutions;// Block type: List Box
-        private NXOpen.BlockStyler.Toggle toggle_SelectAll;// Block type: Toggle
+        private NXOpen.BlockStyler.Button button_SelectAll;// Block type: Button
+        private NXOpen.BlockStyler.Separator separator0;// Block type: Separator
         private NXOpen.BlockStyler.Button BTN_Generate;// Block type: Button
 
         // Custom members
         private static NXOpen.CAE.SimPart mySIM = null;
         private static List<NXOpen.CAE.SimSolution> mySolutions = null;
         private static List<NXOpen.CAE.SimSolution> mySelectedSolutions = new List<NXOpen.CAE.SimSolution>();
+        private static bool allSelected = false;
 
         //------------------------------------------------------------------------------
         //Constructor for NX Styler class
@@ -35,7 +37,15 @@ namespace ResultProbeGenerator
             {
                 theSession = Session.GetSession();
                 theUI = UI.GetUI();
-                theDlxFileName = "ResultProbeGenerator.dlx";
+                // Set path to GUI .dlx file
+                if (Environment.GetEnvironmentVariable("UCCREATOR_ENV") == "SIEMENS")
+                {
+                    theDlxFileName = "ResultProbeGenerator.dlx";
+                }
+                else
+                {
+                    theDlxFileName = @"D:\NX\CAE\UBC\ABC\ResultProbeGenerator\ResultProbeGenerator.dlx";  // IN CPP TC environment as Production tool
+                }
                 theDialog = theUI.CreateDialog(theDlxFileName);
                 theDialog.AddUpdateHandler(new NXOpen.BlockStyler.BlockDialog.Update(update_cb));
                 theDialog.AddInitializeHandler(new NXOpen.BlockStyler.BlockDialog.Initialize(initialize_cb));
@@ -189,7 +199,8 @@ namespace ResultProbeGenerator
             {
                 group0 = (NXOpen.BlockStyler.Group)theDialog.TopBlock.FindBlock("group0");
                 LB_Solutions = (NXOpen.BlockStyler.ListBox)theDialog.TopBlock.FindBlock("LB_Solutions");
-                toggle_SelectAll = (NXOpen.BlockStyler.Toggle)theDialog.TopBlock.FindBlock("toggle_SelectAll");
+                button_SelectAll = (NXOpen.BlockStyler.Button)theDialog.TopBlock.FindBlock("button_SelectAll");
+                separator0 = (NXOpen.BlockStyler.Separator)theDialog.TopBlock.FindBlock("separator0");
                 BTN_Generate = (NXOpen.BlockStyler.Button)theDialog.TopBlock.FindBlock("BTN_Generate");
                 //------------------------------------------------------------------------------
                 //Registration of ListBox specific callbacks
@@ -256,18 +267,30 @@ namespace ResultProbeGenerator
                 {
                    // ...
                 }
-                else if (block == toggle_SelectAll)
+                else if (block == button_SelectAll)
                 {
-                    if (toggle_SelectAll.Value)
+                    if (!allSelected)
                     {
                         // SELECT ALL
                         LB_Solutions.SetSelectedItems(Enumerable.Range(0, mySolutions.Count).ToArray());
+
+                        // Adjust button label
+                        button_SelectAll.Label = "Deselect all";
+                        allSelected = true;
                     }
                     else
                     {
                         // DESELECT ALL
                         LB_Solutions.SetSelectedItems(new List<int>().ToArray());
+
+                        // Adjust button label
+                        button_SelectAll.Label = "Select all";
+                        allSelected = false;
                     }
+                }
+                else if (block == separator0)
+                {
+                    //---------Enter your code here-----------
                 }
                 else if (block == BTN_Generate)
                 {

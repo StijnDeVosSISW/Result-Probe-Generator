@@ -30,20 +30,59 @@ namespace ResultProbeGenerator.SERVICES
             {
                 Logger.Write("   SOLUTION:  " + solution.Name.ToUpper());
 
-                // CHECK IF RESULT PROBE EXISTS ALREADY
-                NXOpen.CAE.ResultProbe[] existingResultProbes;
-                solution.GetAllResultProbes(out existingResultProbes);
-
-                if (existingResultProbes.Any(x => x.Name == "True Bolt Shear"))
+                try
                 {
-                    Logger.Write("      Already contain CPP Result Probe --> SKIPPED");
-                    continue;
+                    // CHECK IF RESULT PROBE EXISTS ALREADY
+                    NXOpen.CAE.ResultProbe[] existingResultProbes;
+                    solution.GetAllResultProbes(out existingResultProbes);
+
+                    if (existingResultProbes.Any(x => x.Name.Contains("True Bolt Shear")))
+                    {
+                        Logger.Write("      Already contains CPP Result Probe --> SKIPPED");
+                        continue;
+                    }
+
+                    // MAKE SOLUTION ACTIVE
+                    mySIM.Simulation.ActiveSolution = solution;
+                    Logger.Write("      Made active solution");
+
+                    // GENERATE CPP RESULT PROBE
+                    // Initialize
+                    NXOpen.CAE.ResultProbe _resultProbe = null;
+                    NXOpen.CAE.ResultProbeBuilder resultProbeBuilder = solution.CreateResultProbeBuilder(_resultProbe);
+
+                    // Name
+                    resultProbeBuilder.ProbeName = "True Bolt Shear";
+                    // Formula
+                    resultProbeBuilder.Formula = "sqrt(bxy^2+bxz^2)";
+                    // Iteration Definition
+                    resultProbeBuilder.Loadcase = NXOpen.CAE.ResultProbeBuilder.LoadcaseSelection.All;
+                    resultProbeBuilder.IterationTypeOption = NXOpen.CAE.ResultProbeBuilder.IterationType.All;
+                    resultProbeBuilder.Iteration = NXOpen.CAE.ResultProbeBuilder.IterationSelection.First;
+                    resultProbeBuilder.CombineAcrossIteration = false;
+                    // Selection and Averaging
+                    resultProbeBuilder.ModelSelectionType = NXOpen.CAE.ResultProbeBuilder.SelectionType.EntireModel;
+                    resultProbeBuilder.CombineAcross = false;
+                    // Output
+                    resultProbeBuilder.ErrorHndl = NXOpen.CAE.ResultProbeBuilder.ErrorHandling.Fillzero;
+                    resultProbeBuilder.ResultType = NXOpen.CAE.Result.Quantity.AppliedForce;
+                    resultProbeBuilder.Unit = (NXOpen.Unit)mySIM.UnitCollection.FindObject("Newton");
+                    resultProbeBuilder.ResultReferenceType = NXOpen.CAE.SimResultReference.Type.Structural;
+
+                    // Create target Result Probe
+                    resultProbeBuilder.Commit();
+
+                    // Clean up
+                    resultProbeBuilder.Destroy();
+
+                    Logger.Write("      CPP Result Probe generated!");
                 }
-
-                // MAKE SOLUTION ACTIVE
-                mySIM.Simulation.ActiveSolution = solution;
-                Logger.Write("      Made active solution");
-
+                catch (Exception e)
+                {
+                    Logger.Write(Environment.NewLine + 
+                        "!ERROR occurred: " + Environment.NewLine + 
+                        e.ToString() + Environment.NewLine);
+                }
             }
         }
     }
