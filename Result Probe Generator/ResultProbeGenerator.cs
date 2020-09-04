@@ -44,7 +44,21 @@ namespace ResultProbeGenerator
                 }
                 else
                 {
-                    theDlxFileName = @"D:\NX\CAE\UBC\ABC\ResultProbeGenerator\ResultProbeGenerator.dlx";  // IN CPP TC environment as Production tool
+                    //theDlxFileName = @"D:\NX\CAE\UBC\ABC\ResultProbeGenerator\ResultProbeGenerator.dlx";  // IN CPP TC environment as Production tool
+
+                    string PLMHOST = Environment.GetEnvironmentVariable("PLMHOST");
+                    string UGII_VERSION = Environment.GetEnvironmentVariable("UGII_VERSION");
+
+                    if (PLMHOST == "")
+                    {
+                        theUI.NXMessageBox.Show("PLMHOST NOT FOUND", NXMessageBox.DialogType.Error, "Could not find PLMHOST environment variable!");
+                    }
+                    if (UGII_VERSION == "")
+                    {
+                        theUI.NXMessageBox.Show("UGII_VERSION NOT FOUND", NXMessageBox.DialogType.Error, "Could not find UGII_VERSION environment variable!");
+                    }
+
+                    theDlxFileName = PLMHOST + @"\plmshare\config\nxcustom\NX-" + UGII_VERSION + @"\site\application\ResultProbeGenerator.dlx";
                 }
                 theDialog = theUI.CreateDialog(theDlxFileName);
                 theDialog.AddUpdateHandler(new NXOpen.BlockStyler.BlockDialog.Update(update_cb));
